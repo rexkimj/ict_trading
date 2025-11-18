@@ -65,6 +65,9 @@ class BacktestEngine:
             confirmation_timeframe=config_data.get('timeframes', {}).get('confirmation_timeframe', '5M')
         )
 
+        # 진입 설정
+        self.min_confidence = config_data.get('entry', {}).get('min_confidence', 0.7)
+
         # 컴포넌트 초기화
         self._initialize_components()
 
@@ -147,7 +150,8 @@ class BacktestEngine:
         self.entry_strategy = EntryStrategy(
             self.seven_factor_analyzer,
             self.mtf_analyzer,
-            self.poi_manager
+            self.poi_manager,
+            min_confidence=self.min_confidence
         )
 
         self.exit_strategy = ExitStrategy(

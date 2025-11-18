@@ -78,8 +78,10 @@ class PaperTradingEngine:
         )
 
         # Strategy
+        entry_config = self.config.get('entry', {})
         self.entry_strategy = EntryStrategy(
-            self.seven_factor_analyzer, self.mtf_analyzer, self.poi_manager
+            self.seven_factor_analyzer, self.mtf_analyzer, self.poi_manager,
+            min_confidence=entry_config.get('min_confidence', 0.7)
         )
         self.exit_strategy = ExitStrategy(
             self.liquidity_analyzer, self.fvg_analyzer

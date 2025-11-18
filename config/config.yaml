@@ -24,6 +24,11 @@ order_block:
   box_range_level: 0.5      # 박스권 0.5 레벨
   ob_confirmation_required: true  # OB 확인 필수
 
+entry:
+  min_confidence: 0.5       # 최소 진입 신뢰도 (0.0-1.0)
+                            # 낮추면 더 많은 시그널, 높이면 더 엄격한 진입
+                            # 권장: 0.5-0.7
+
 execution:
   vwap_enabled: true        # VWAP 전략 사용
   order_splitting: true     # 주문 분할 사용
