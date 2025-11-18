@@ -1,0 +1,37 @@
+# ICT Trading Strategy Configuration
+
+risk_management:
+  max_risk_per_trade: 0.02  # 최대 리스크 비율 (2%)
+  min_risk_per_trade: 0.01  # 최소 리스크 비율 (1%)
+  max_open_positions: 3     # 최대 동시 포지션 수
+
+timeframes:
+  higher_timeframe: "4H"    # 상위 타임프레임 (추세 확인용)
+  entry_timeframe: "15M"    # 진입 타임프레임
+  confirmation_timeframe: "5M"  # 진입 확인 타임프레임
+
+liquidity:
+  pdh_pdl_enabled: true     # PDH/PDL 유동성 사용
+  swing_points_enabled: true # 스윙 고저점 유동성 사용
+  liquidity_grab_threshold: 0.001  # 유동성 확보 임계값
+
+fvg:
+  min_fvg_size: 0.0005      # 최소 FVG 크기
+  fvg_rebalance_threshold: 0.5  # FVG 리밸런스 비율
+  fibonacci_filter: 0.5     # 피보나치 필터 레벨
+
+order_block:
+  box_range_level: 0.5      # 박스권 0.5 레벨
+  ob_confirmation_required: true  # OB 확인 필수
+
+execution:
+  vwap_enabled: true        # VWAP 전략 사용
+  order_splitting: true     # 주문 분할 사용
+  max_slippage: 0.002       # 최대 슬리피지 허용치
+  kill_switch_enabled: true # Kill Switch 활성화
+
+backtesting:
+  initial_capital: 10000    # 초기 자본
+  commission: 0.001         # 거래 수수료
+  start_date: "2023-01-01"
+  end_date: "2024-01-01"
