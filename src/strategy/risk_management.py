@@ -293,12 +293,16 @@ class RiskManager:
         if not self.trade_history:
             return {
                 'total_trades': 0,
+                'winning_trades': 0,
+                'losing_trades': 0,
                 'win_rate': 0.0,
                 'total_pnl': 0.0,
+                'total_pnl_pct': 0.0,
                 'avg_win': 0.0,
                 'avg_loss': 0.0,
                 'profit_factor': 0.0,
-                'max_drawdown': 0.0
+                'max_drawdown': 0.0,
+                'max_drawdown_pct': 0.0
             }
 
         total_trades = len(self.trade_history)
@@ -338,7 +342,7 @@ class RiskManager:
             'losing_trades': len(losing_trades),
             'win_rate': win_rate,
             'total_pnl': total_pnl,
-            'total_pnl_pct': (total_pnl / self.initial_capital) * 100,
+            'total_pnl_pct': (total_pnl / self.initial_capital) * 100 if self.initial_capital > 0 else 0,
             'avg_win': avg_win,
             'avg_loss': avg_loss,
             'profit_factor': profit_factor,
