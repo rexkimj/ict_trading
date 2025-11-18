@@ -187,7 +187,7 @@ class BacktestEngine:
 
         if len(df) == 0:
             print("데이터가 없습니다")
-            return {}
+            return self._generate_empty_results()
 
         # 초기 자본 기록
         self.equity_curve.append({
@@ -197,7 +197,6 @@ class BacktestEngine:
 
         # 백테스트 루프
         lookback = 100
-        current_position = None
 
         for i in range(lookback, len(df)):
             current_idx = i
@@ -220,14 +219,20 @@ class BacktestEngine:
             should_stop, reason = self.risk_manager.check_kill_switch()
             if should_stop:
                 print(f"\nKill Switch 발동: {reason}")
-                if current_position:
-                    self._close_position(current_position, current_price, "Kill Switch")
+                # 오픈 포지션 모두 청산
+                for trade in self.trades:
+                    if trade['position'].is_open:
+                        self._close_position(trade, current_price, "Kill Switch")
                 break
 
             # 포지션 관리
-            if current_position:
+            # 오픈 포지션 찾기
+            open_trades = [t for t in self.trades if t['position'].is_open]
+
+            if open_trades:
                 # 기존 포지션 청산 확인
-                self._check_exit(current_position, historical_df, current_price)
+                for trade in open_trades:
+                    self._check_exit(trade, historical_df, current_price)
             else:
                 # 새 진입 확인
                 self._check_entry(historical_df, current_price)
@@ -239,9 +244,11 @@ class BacktestEngine:
             })
 
             # 진행 상황 출력 (10% 단위)
-            if i % (len(df) // 10) == 0:
-                progress = (i / len(df)) * 100
-                print(f"진행: {progress:.1f}% - 자본: ${self.risk_manager.current_capital:.2f}")
+            if len(df) > 10:
+                step = len(df) // 10
+                if step > 0 and i % step == 0:
+                    progress = (i / len(df)) * 100
+                    print(f"진행: {progress:.1f}% - 자본: ${self.risk_manager.current_capital:.2f}")
 
         # 백테스트 결과 생성
         results = self._generate_results()
@@ -357,4 +364,24 @@ class BacktestEngine:
             'max_drawdown_pct': performance['max_drawdown_pct'],
             'trades': self.trades,
             'equity_curve': self.equity_curve
+        }
+
+    def _generate_empty_results(self) -> Dict:
+        """빈 백테스트 결과 생성"""
+        return {
+            'initial_capital': self.config.initial_capital,
+            'final_capital': self.config.initial_capital,
+            'total_pnl': 0.0,
+            'total_pnl_pct': 0.0,
+            'total_trades': 0,
+            'winning_trades': 0,
+            'losing_trades': 0,
+            'win_rate': 0.0,
+            'avg_win': 0.0,
+            'avg_loss': 0.0,
+            'profit_factor': 0.0,
+            'max_drawdown': 0.0,
+            'max_drawdown_pct': 0.0,
+            'trades': [],
+            'equity_curve': []
         }
