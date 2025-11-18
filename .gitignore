@@ -144,6 +144,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Trading data
+data_*.csv
+*.csv
+logs/
+*.log
+
 # Spyder project settings
 .spyderproject
 .spyproject
