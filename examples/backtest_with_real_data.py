@@ -11,31 +11,59 @@ from src.exchange.connector import ExchangeConnector
 from src.backtesting.engine import BacktestEngine
 from src.backtesting.performance import PerformanceAnalyzer
 import pandas as pd
+import os
 
 
-def run_backtest_with_real_data():
-    """실제 데이터로 백테스트 실행"""
-    print("=== 실제 데이터 백테스트 ===\n")
+def load_or_download_data(
+    symbol: str,
+    timeframe: str,
+    start_date: str,
+    end_date: str,
+    force_download: bool = False
+) -> pd.DataFrame:
+    """
+    캐시된 데이터를 로드하거나 다운로드
 
-    # 1. 거래소 연결 (API 키 없이도 과거 데이터 조회 가능)
-    print("거래소 연결 중...")
+    Args:
+        symbol: 심볼
+        timeframe: 타임프레임
+        start_date: 시작일
+        end_date: 종료일
+        force_download: 강제 다운로드 여부
+
+    Returns:
+        OHLCV 데이터프레임
+    """
+    # 데이터 디렉토리 생성
+    data_dir = Path(__file__).parent.parent / 'data'
+    data_dir.mkdir(exist_ok=True)
+
+    # 파일명 생성
+    symbol_safe = symbol.replace('/', '_')
+    filename = f"{symbol_safe}_{timeframe}_{start_date}_{end_date}.csv"
+    filepath = data_dir / filename
+
+    # 캐시된 파일이 있고 강제 다운로드가 아니면 로드
+    if filepath.exists() and not force_download:
+        print(f"✅ 캐시된 데이터 로드: {filename}")
+        df = pd.read_csv(filepath, index_col=0, parse_dates=True)
+        print(f"   로드 완료: {len(df)} 캔들\n")
+        return df
+
+    # 데이터 다운로드
+    print(f"📥 데이터 다운로드 중... (최초 1회만)")
+    print(f"   심볼: {symbol}")
+    print(f"   타임프레임: {timeframe}")
+    print(f"   기간: {start_date} ~ {end_date}")
+    print(f"   ⏱️  시간이 걸릴 수 있습니다 (1-3분)...\n")
+
+    # 거래소 연결
     exchange = ExchangeConnector(
         exchange_id='binance',
         testnet=False  # 실제 데이터 사용
     )
-    print("연결 완료\n")
 
-    # 2. 과거 데이터 다운로드
-    symbol = 'BTC/USDT'
-    timeframe = '5m'
-    start_date = '2024-01-01'
-    end_date = '2024-03-31'
-
-    print(f"과거 데이터 다운로드 중...")
-    print(f"심볼: {symbol}")
-    print(f"타임프레임: {timeframe}")
-    print(f"기간: {start_date} ~ {end_date}\n")
-
+    # 과거 데이터 다운로드
     df = exchange.fetch_historical_data(
         symbol=symbol,
         timeframe=timeframe,
@@ -43,20 +71,44 @@ def run_backtest_with_real_data():
         end_date=end_date
     )
 
-    print(f"데이터 다운로드 완료: {len(df)} 캔들")
-    print(f"기간: {df.index[0]} ~ {df.index[-1]}")
-    print(f"가격 범위: ${df['low'].min():.2f} ~ ${df['high'].max():.2f}\n")
+    # CSV로 저장
+    df.to_csv(filepath)
+    print(f"\n💾 데이터 저장: {filename}")
+    print(f"   다음 실행부터는 즉시 로드됩니다!\n")
 
-    # 데이터 저장 (옵션)
-    df.to_csv(f'data_{symbol.replace("/", "_")}_{timeframe}.csv')
-    print("데이터 저장 완료\n")
+    return df
+
+
+def run_backtest_with_real_data():
+    """실제 데이터로 백테스트 실행"""
+    print("=== 실제 데이터 백테스트 ===\n")
+
+    # 설정
+    symbol = 'BTC/USDT'
+    timeframe = '5m'
+    start_date = '2024-01-01'
+    end_date = '2024-03-31'
+
+    # 데이터 로드 또는 다운로드 (캐시 사용)
+    df = load_or_download_data(
+        symbol=symbol,
+        timeframe=timeframe,
+        start_date=start_date,
+        end_date=end_date,
+        force_download=False  # True로 설정하면 강제 재다운로드
+    )
+
+    print(f"📊 데이터 정보:")
+    print(f"   캔들 수: {len(df)}")
+    print(f"   기간: {df.index[0]} ~ {df.index[-1]}")
+    print(f"   가격 범위: ${df['low'].min():.2f} ~ ${df['high'].max():.2f}\n")
 
     # 3. 백테스트 실행
-    print("백테스트 엔진 초기화 중...")
+    print("🚀 백테스트 엔진 초기화 중...")
     backtest = BacktestEngine(config_path='config/config.yaml')
-    print("초기화 완료\n")
+    print("   초기화 완료\n")
 
-    print("백테스트 실행 중...\n")
+    print("⏳ 백테스트 실행 중...\n")
     results = backtest.run(df)
 
     # 4. 성과 분석

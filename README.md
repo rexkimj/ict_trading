@@ -89,6 +89,11 @@ python examples/backtest_with_real_data.py
 
 이 예제는 Binance에서 실제 과거 데이터를 다운로드하여 백테스트를 수행합니다.
 
+**💡 스마트 캐싱**:
+- 최초 실행 시 데이터를 다운로드하고 `data/` 폴더에 저장
+- 다음 실행부터는 캐시된 데이터를 즉시 로드 (1초 이내)
+- 새로운 데이터가 필요하면 `force_download=True`로 설정
+
 ### 3. 페이퍼 트레이딩 (모의 거래)
 
 ```bash

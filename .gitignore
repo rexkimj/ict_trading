@@ -145,6 +145,7 @@ env.bak/
 venv.bak/
 
 # Trading data
+data/
 data_*.csv
 *.csv
 logs/
